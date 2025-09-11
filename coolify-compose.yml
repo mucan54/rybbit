@@ -3,10 +3,19 @@ services:
     image: clickhouse/clickhouse-server:25.4.2
     volumes:
       - clickhouse-data:/var/lib/clickhouse
+    configs:
+      - source: clickhouse_s3_config
+        target: /etc/clickhouse-server/config.d/s3_storage.xml
+      - source: clickhouse_ttl_config
+        target: /etc/clickhouse-server/config.d/ttl_config.xml
     environment:
       - CLICKHOUSE_DB=${CLICKHOUSE_DB:-analytics}
       - CLICKHOUSE_USER=${CLICKHOUSE_USER:-default}
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-frog}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_REGION:-us-east-1}
+      - S3_BUCKET=${S3_BUCKET}
     restart: unless-stopped
 
   postgres:
@@ -63,3 +72,35 @@ volumes:
   clickhouse-data:
   postgres-data:
   redis-data:
+
+configs:
+  clickhouse_s3_config:
+    content: |
+      <clickhouse>
+          <storage_configuration>
+              <disks>
+                  <s3_disk>
+                      <type>s3</type>
+                      <endpoint>${S3_ENDPOINT}/${S3_BUCKET}/clickhouse/</endpoint>
+                      <access_key_id from_env="S3_ACCESS_KEY"/>
+                      <secret_access_key from_env="S3_SECRET_KEY"/>
+                      <metadata_type>plain</metadata_type>
+                      <use_environment_credentials>false</use_environment_credentials>
+                  </s3_disk>
+              </disks>
+              <policies>
+                  <s3_policy>
+                      <volumes>
+                          <main>
+                              <disk>s3_disk</disk>
+                          </main>
+                      </volumes>
+                  </s3_policy>
+              </policies>
+          </storage_configuration>
+          <profiles>
+              <default>
+                  <default_storage_policy>s3_policy</default_storage_policy>
+              </default>
+          </profiles>
+      </clickhouse>
