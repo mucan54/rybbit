@@ -18,10 +18,10 @@
     </disks>
     <policies><!-- This policy defines a tiered storage setup with two volumes, one for local and one for S3 storage. -->
         <tiered_s3_policy>
-            <volumes><!-- A 'hot' volume that uses the local disk for recent, fast-access data. -->
+            <volumes><!-- The 'hot' volume uses the local disk for recent, fast-access data. -->
                 <hot>
                     <disk>local_data_disk</disk>
-                </hot><!-- A 'cold' volume that uses S3 for long-term storage. -->
+                </hot><!-- The 'cold' volume uses S3 for long-term storage. -->
                 <cold>
                     <disk>s3_disk</disk>
                 </cold>
