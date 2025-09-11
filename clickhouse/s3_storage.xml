@@ -4,7 +4,7 @@
             <local_data_disk>
                 <type>local</type>
                 <path>/var/lib/clickhouse/data/</path>
-            </local_data_disk>    <!-- Correctly defined S3 disk. -->
+            </local_data_disk><!-- Correctly defined S3 disk. -->
             <s3_disk>
                 <type>s3</type>
                 <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
@@ -15,16 +15,15 @@
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk_metadata/</metadata_path>
             </s3_disk>
         </disks>
-
-        <policies>
-            <!-- This policy defines a tiered storage setup. -->
+        <policies><!-- This policy defines a tiered storage setup. -->
             <tiered_s3_policy>
-                <volumes>
-                    <!-- 'hot' volume for frequently accessed, recent data -->
+                <volumes><!-- Mandatory for migration: Include the old 'default' volume from the old policy -->
+                    <default>
+                        <disk>local_data_disk</disk>
+                    </default><!-- 'hot' volume for frequently accessed, recent data -->
                     <hot>
                         <disk>local_data_disk</disk>
-                    </hot>
-                    <!-- 'cold' volume for less frequently accessed data on S3 -->
+                    </hot><!-- 'cold' volume for less frequently accessed data on S3 -->
                     <cold>
                         <disk>s3_disk</disk>
                     </cold>
