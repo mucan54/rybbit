@@ -84,8 +84,11 @@ configs:
                       <endpoint>${S3_ENDPOINT}/${S3_BUCKET}/clickhouse/</endpoint>
                       <access_key_id from_env="S3_ACCESS_KEY"/>
                       <secret_access_key from_env="S3_SECRET_KEY"/>
+                      <region from_env="S3_REGION"/>
                       <metadata_type>plain</metadata_type>
                       <use_environment_credentials>false</use_environment_credentials>
+                      <no_sign_request>false</no_sign_request>
+                      <use_virtual_addressing>false</use_virtual_addressing>
                   </s3_disk>
               </disks>
               <policies>
