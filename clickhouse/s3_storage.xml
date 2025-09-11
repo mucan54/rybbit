@@ -1,20 +1,13 @@
 <clickhouse>
     <storage_configuration>
         <disks>
-            <!-- Define the default disk explicitly for compatibility with old tables. -->
+            <!-- Define the default disk explicitly -->
             <default>
                 <type>local</type>
-                <path>/var/lib/clickhouse/data/</path>
+                <path>/var/lib/clickhouse/</path>
             </default>
 
-            <!-- A local disk for hot data, limited to 1GB. -->
-            <local_data_disk>
-                <type>local</type>
-                <path>/var/lib/clickhouse/data/</path>
-                <max_data_part_size>1073741824</max_data_part_size>
-            </local_data_disk>
-
-            <!-- S3 disk for cold data. -->
+            <!-- S3 disk for cold data -->
             <s3_disk>
                 <type>s3</type>
                 <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
@@ -27,18 +20,22 @@
         </disks>
 
         <policies>
-            <!-- This policy defines a tiered storage setup. -->
+            <!-- Default policy for backward compatibility -->
+            <default>
+                <volumes>
+                    <main>
+                        <disk>default</disk>
+                    </main>
+                </volumes>
+            </default>
+
+            <!-- Tiered storage policy -->
             <tiered_s3_policy>
                 <volumes>
-                    <!-- Use the explicit 'default' disk for the migration volume. -->
-                    <default>
-                        <disk>default</disk>
-                    </default>
-                    <!-- Hot data stays on the local disk. -->
                     <hot>
-                        <disk>local_data_disk</disk>
+                        <disk>default</disk>
+                        <max_data_part_size_bytes>1073741824</max_data_part_size_bytes>
                     </hot>
-                    <!-- Cold data moves to S3. -->
                     <cold>
                         <disk>s3_disk</disk>
                     </cold>
@@ -46,11 +43,5 @@
                 <move_factor>0.1</move_factor>
             </tiered_s3_policy>
         </policies>
-
-        <profiles>
-            <default>
-                <default_storage_policy>tiered_s3_policy</default_storage_policy>
-            </default>
-        </profiles>
     </storage_configuration>
 </clickhouse>
