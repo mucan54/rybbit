@@ -3,32 +3,17 @@
         <disks>
             <s3_disk>
                 <type>s3</type>
-
-                <!-- Path-style addressing for Hetzner: endpoint host + /bucket/prefix/ -->
-                <!-- TIP: keep a prefix per service/replica to avoid mixing parts -->
                 <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
-
-                <!-- Credentials via env (Compose passes S3_ACCESS_KEY / S3_SECRET_KEY) -->
                 <access_key_id from_env="S3_ACCESS_KEY"/>
                 <secret_access_key from_env="S3_SECRET_KEY"/>
-
-                <!-- Hetzner location/region (matters for SigV4) -->
                 <region>nbg1</region>
-
-                <!-- Use path-style since endpoint includes the bucket in the path -->
                 <use_virtual_addressing>false</use_virtual_addressing>
 
-                <!-- Mandatory local metadata dir (lives on clickhouse-data volume) -->
+                <!-- local metadata dir for the S3 disk -->
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
-
-                <!-- Local read cache for S3 parts (recommended) -->
-                <data_cache_enabled>true</data_cache_enabled>
-                <cache_path>/var/lib/clickhouse/disks/s3_cache/</cache_path>
-                <max_single_part_upload_size>100Mi</max_single_part_upload_size>
-                <max_single_read_retries>5</max_single_read_retries>
-                <send_metadata>true</send_metadata>
             </s3_disk>
 
+            <!-- Proper cache disk (local) -->
             <s3_cache>
                 <type>cache</type>
                 <disk>s3_disk</disk>
@@ -41,16 +26,10 @@
             <s3_policy>
                 <volumes>
                     <main>
-                        <disk>s3_disk</disk>
+                        <disk>s3_disk</disk> <!-- or s3_cache if you want read cache -->
                     </main>
                 </volumes>
             </s3_policy>
         </policies>
     </storage_configuration>
-
-    <profiles>
-        <default>
-            <default_storage_policy>s3_policy</default_storage_policy>
-        </default>
-    </profiles>
 </clickhouse>
