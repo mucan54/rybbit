@@ -89,6 +89,8 @@ configs:
                       <use_environment_credentials>false</use_environment_credentials>
                       <no_sign_request>false</no_sign_request>
                       <use_virtual_addressing>false</use_virtual_addressing>
+                      <support_batch_delete>true</support_batch_delete>
+                      <read_only>false</read_only>
                   </s3_disk>
               </disks>
               <policies>
