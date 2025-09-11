@@ -1,51 +1,41 @@
 <clickhouse>
     <storage_configuration>
-        <disks>
-            <!-- Correct definition for default disk -->
-            <default>
+        <disks><!-- A local disk for hot data and caching. -->
+            <local_data_disk>
                 <type>local</type>
-                <path>/var/lib/clickhouse/</path> <!-- Path for default disk -->
-            </default>
-
-            <!-- Real S3 disk -->
+                <path>/var/lib/clickhouse/data/</path>
+            </local_data_disk>    <!-- Correctly defined S3 disk. -->
             <s3_disk>
                 <type>s3</type>
                 <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
                 <access_key_id from_env="S3_ACCESS_KEY"/>
                 <secret_access_key from_env="S3_SECRET_KEY"/>
-                <region>nbg1</region>
+                <region from_env="S3_REGION"/>
                 <use_virtual_addressing>false</use_virtual_addressing>
-                <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
+                <metadata_path>/var/lib/clickhouse/disks/s3_disk_metadata/</metadata_path>
             </s3_disk>
-
-            <!-- Cache disk (optional) -->
-            <s3_cache>
-                <type>cache</type>
-                <disk>s3_disk</disk>
-                <path>/var/lib/clickhouse/disks/s3_cache/</path>
-                <max_size>10Gi</max_size>
-            </s3_cache>
         </disks>
 
         <policies>
-            <s3_policy>
+            <!-- This policy defines a tiered storage setup. -->
+            <tiered_s3_policy>
                 <volumes>
-                    <main>
-                        <disk>s3_cache</disk>  <!-- Use s3_cache for main storage -->
-                    </main>
-
-                    <!-- Ensure default volume is present in the policy -->
-                    <default>
-                        <disk>default</disk>  <!-- Default volume should use default disk -->
-                    </default>
+                    <!-- 'hot' volume for frequently accessed, recent data -->
+                    <hot>
+                        <disk>local_data_disk</disk>
+                    </hot>
+                    <!-- 'cold' volume for less frequently accessed data on S3 -->
+                    <cold>
+                        <disk>s3_disk</disk>
+                    </cold>
                 </volumes>
-            </s3_policy>
+                <move_factor>0.1</move_factor>
+            </tiered_s3_policy>
         </policies>
     </storage_configuration>
-
     <profiles>
-        <default>
-            <default_storage_policy>s3_policy</default_storage_policy> <!-- Make S3 the default storage policy -->
+        <default><!-- Set the default storage policy for new tables. -->
+            <default_storage_policy>tiered_s3_policy</default_storage_policy>
         </default>
     </profiles>
 </clickhouse>
