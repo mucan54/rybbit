@@ -1,43 +1,34 @@
 <clickhouse>
     <storage_configuration>
-        <disks><!-- A local disk for hot data and caching. -->
-            <local_data_disk>
-                <type>local</type>
-                <path>/var/lib/clickhouse/data/</path><!-- Limit the size of data parts on the local disk to 512MB. -->
-                <max_data_part_size>536870912</max_data_part_size>
-            </local_data_disk>    <!-- Correctly defined S3 disk. -->
-            <s3_disk>
-                <type>s3</type>
-                <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
-                <access_key_id from_env="S3_ACCESS_KEY"/>
-                <secret_access_key from_env="S3_SECRET_KEY"/>
-                <region from_env="S3_REGION"/>
-                <use_virtual_addressing>false</use_virtual_addressing>
-                <metadata_path>/var/lib/clickhouse/disks/s3_disk_metadata/</metadata_path>
-            </s3_disk>
-        </disks>
-
-        <policies>
-            <!-- This policy defines a tiered storage setup. -->
-            <tiered_s3_policy>
-                <volumes>
-                    <!-- **Mandatory for migration**: Include the old 'default' volume from the old policy -->
-                    <default>
-                        <disk>local_data_disk</disk>
-                    </default>
-                    <!-- 'hot' volume for frequently accessed, recent data -->
-                    <hot>
-                        <disk>local_data_disk</disk>
-                    </hot>
-                    <!-- 'cold' volume for less frequently accessed data on S3 -->
-                    <cold>
-                        <disk>s3_disk</disk>
-                    </cold>
-                </volumes>
-                <move_factor>0.1</move_factor>
-            </tiered_s3_policy>
-        </policies>
-    </storage_configuration>
+    <disks><!-- A local disk for hot data and caching. -->
+        <local_data_disk>
+            <type>local</type>
+            <path>/var/lib/clickhouse/data/</path><!-- Limit the size of data parts on the local disk to 1GB. -->
+            <max_data_part_size>1073741824</max_data_part_size>
+        </local_data_disk><!-- Correctly defined S3 disk. -->
+        <s3_disk>
+            <type>s3</type>
+            <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
+            <access_key_id from_env="S3_ACCESS_KEY"/>
+            <secret_access_key from_env="S3_SECRET_KEY"/>
+            <region from_env="S3_REGION"/>
+            <use_virtual_addressing>false</use_virtual_addressing>
+            <metadata_path>/var/lib/clickhouse/disks/s3_disk_metadata/</metadata_path>
+        </s3_disk>
+    </disks>
+    <policies><!-- This policy defines a tiered storage setup with two volumes, one for local and one for S3 storage. -->
+        <tiered_s3_policy>
+            <volumes><!-- A 'hot' volume that uses the local disk for recent, fast-access data. -->
+                <hot>
+                    <disk>local_data_disk</disk>
+                </hot><!-- A 'cold' volume that uses S3 for long-term storage. -->
+                <cold>
+                    <disk>s3_disk</disk>
+                </cold>
+            </volumes>
+            <move_factor>0.1</move_factor>
+        </tiered_s3_policy>
+    </policies>
     <profiles>
         <default><!-- Set the default storage policy for new tables. -->
             <default_storage_policy>tiered_s3_policy</default_storage_policy>
