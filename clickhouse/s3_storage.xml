@@ -1,6 +1,7 @@
 <clickhouse>
     <storage_configuration>
         <disks>
+            <!-- Real S3 disk -->
             <s3_disk>
                 <type>s3</type>
                 <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
@@ -9,15 +10,15 @@
                 <region>nbg1</region>
                 <use_virtual_addressing>false</use_virtual_addressing>
 
-                <!-- local metadata dir for the S3 disk -->
+                <!-- Local metadata directory for S3 -->
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
             </s3_disk>
 
-            <!-- Proper cache disk (local) -->
+            <!-- Correct cache disk definition -->
             <s3_cache>
                 <type>cache</type>
-                <disk>s3_disk</disk>
-                <path>/var/lib/clickhouse/disks/s3_cache/</path>
+                <disk>s3_disk</disk>  <!-- Cache disk uses the real S3 disk -->
+                <path>/var/lib/clickhouse/disks/s3_cache/</path> <!-- Use its own path -->
                 <max_size>10Gi</max_size>
             </s3_cache>
         </disks>
@@ -26,10 +27,17 @@
             <s3_policy>
                 <volumes>
                     <main>
-                        <disk>s3_disk</disk> <!-- or s3_cache if you want read cache -->
+                        <disk>s3_cache</disk>  <!-- Cache disk for volume -->
                     </main>
                 </volumes>
             </s3_policy>
         </policies>
     </storage_configuration>
+
+    <!-- Optional: Make S3 the default storage policy for new tables -->
+    <profiles>
+        <default>
+            <default_storage_policy>s3_policy</default_storage_policy>
+        </default>
+    </profiles>
 </clickhouse>
