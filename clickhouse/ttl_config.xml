@@ -1,0 +1,6 @@
+<clickhouse>
+    <merge_tree>
+        <merge_with_ttl_timeout>86400</merge_with_ttl_timeout>
+        <ttl_only_drop_parts>1</ttl_only_drop_parts>
+    </merge_tree>
+</clickhouse>

@@ -1,52 +1,48 @@
 services:
   clickhouse:
     image: clickhouse/clickhouse-server:25.4.2
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-analytics}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-frog}
+      # S3 creds for <from_env/> in XML:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
     volumes:
       - clickhouse-data:/var/lib/clickhouse
-    configs:
-      - source: clickhouse_s3_config
-        target: /etc/clickhouse-server/config.d/s3_storage.xml
-      - source: clickhouse_ttl_config
-        target: /etc/clickhouse-server/config.d/ttl_config.xml
-    environment:
-      - CLICKHOUSE_DB=${CLICKHOUSE_DB:-analytics}
-      - CLICKHOUSE_USER=${CLICKHOUSE_USER:-default}
-      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-frog}
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_BUCKET=${S3_BUCKET}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - ./clickhouse/s3_storage.xml:/etc/clickhouse-server/config.d/s3_storage.xml:ro
+      - ./clickhouse/ttl_config.xml:/etc/clickhouse-server/config.d/ttl_config.xml:ro
     restart: unless-stopped
 
   postgres:
     image: postgres:17.4
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-frog}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-frog}
-      - POSTGRES_DB=${POSTGRES_DB:-analytics}
+      POSTGRES_USER: ${POSTGRES_USER:-frog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-frog}
+      POSTGRES_DB: ${POSTGRES_DB:-analytics}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-changeme}", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
     restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-changeme}", "--appendonly", "yes"]
 
   backend:
     build:
       context: .
       dockerfile: ./server/Dockerfile
     environment:
-      - NODE_ENV=production
-      - CLICKHOUSE_HOST=http://clickhouse:8123
-      - POSTGRES_HOST=postgres
-      - REDIS_HOST=redis
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - BASE_URL=${BASE_URL}
-      - DISABLE_SIGNUP=${DISABLE_SIGNUP}
+      NODE_ENV: production
+      CLICKHOUSE_HOST: http://clickhouse:8123
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BASE_URL: ${BASE_URL}
+      DISABLE_SIGNUP: ${DISABLE_SIGNUP}
     depends_on:
       - clickhouse
       - postgres
@@ -61,9 +57,9 @@ services:
         NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
         NEXT_PUBLIC_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
     environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
-      - NEXT_PUBLIC_DISABLE_SIGNUP=${DISABLE_SIGNUP}
+      NODE_ENV: production
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      NEXT_PUBLIC_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
     depends_on:
       - backend
     restart: unless-stopped
@@ -72,49 +68,3 @@ volumes:
   clickhouse-data:
   postgres-data:
   redis-data:
-
-configs:
-  clickhouse_s3_config:
-    content: |
-      <clickhouse>
-          <storage_configuration>
-              <disks>
-                  <s3_disk>
-                      <type>s3</type>
-                      <endpoint>${S3_ENDPOINT}/${S3_BUCKET}/clickhouse/</endpoint>
-                      <access_key_id from_env="S3_ACCESS_KEY"/>
-                      <secret_access_key from_env="S3_SECRET_KEY"/>
-                      <region from_env="S3_REGION"/>
-                      <metadata_type>plain</metadata_type>
-                      <use_environment_credentials>false</use_environment_credentials>
-                      <no_sign_request>false</no_sign_request>
-                      <use_virtual_addressing>false</use_virtual_addressing>
-                      <support_batch_delete>true</support_batch_delete>
-                      <read_only>false</read_only>
-                  </s3_disk>
-              </disks>
-              <policies>
-                  <s3_policy>
-                      <volumes>
-                          <main>
-                              <disk>s3_disk</disk>
-                          </main>
-                      </volumes>
-                  </s3_policy>
-              </policies>
-          </storage_configuration>
-          <profiles>
-              <default>
-                  <default_storage_policy>s3_policy</default_storage_policy>
-              </default>
-          </profiles>
-      </clickhouse>
-
-  clickhouse_ttl_config:
-    content: |
-      <clickhouse>
-          <merge_tree>
-              <merge_with_ttl_timeout>86400</merge_with_ttl_timeout>
-              <ttl_only_drop_parts>1</ttl_only_drop_parts>
-          </merge_tree>
-      </clickhouse>
