@@ -10,16 +10,16 @@
                 <region>nbg1</region>
                 <use_virtual_addressing>false</use_virtual_addressing>
 
-                <!-- Local metadata directory for S3 -->
+                <!-- Local metadata directory for S3 parts -->
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
             </s3_disk>
 
-            <!-- Correct cache disk definition -->
+            <!-- Cache disk definition -->
             <s3_cache>
                 <type>cache</type>
                 <disk>s3_disk</disk>  <!-- Cache disk uses the real S3 disk -->
-                <path>/var/lib/clickhouse/disks/s3_cache/</path> <!-- Use its own path -->
-                <max_size>10Gi</max_size>
+                <path>/var/lib/clickhouse/disks/s3_cache/</path> <!-- Cache disk's own path -->
+                <max_size>10Gi</max_size> <!-- Limit cache to 10 GiB -->
             </s3_cache>
         </disks>
 
