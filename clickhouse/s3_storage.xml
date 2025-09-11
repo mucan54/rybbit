@@ -1,10 +1,10 @@
 <clickhouse>
     <storage_configuration>
         <disks>
-            <!-- Default disk configuration -->
+            <!-- Correct definition for default disk -->
             <default>
                 <type>local</type>
-                <path>/var/lib/clickhouse/</path>
+                <path>/var/lib/clickhouse/</path> <!-- Path for default disk -->
             </default>
 
             <!-- Real S3 disk -->
@@ -15,7 +15,6 @@
                 <secret_access_key from_env="S3_SECRET_KEY"/>
                 <region>nbg1</region>
                 <use_virtual_addressing>false</use_virtual_addressing>
-
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
             </s3_disk>
 
@@ -29,13 +28,16 @@
         </disks>
 
         <policies>
-            <!-- New policy that includes both default and s3 disks -->
             <s3_policy>
                 <volumes>
                     <main>
-                        <disk>default</disk>
-                        <disk>s3_disk</disk>  <!-- Combine local and S3 disk for main volume -->
+                        <disk>s3_cache</disk>  <!-- Use s3_cache for main storage -->
                     </main>
+
+                    <!-- Ensure default volume is present in the policy -->
+                    <default>
+                        <disk>default</disk>  <!-- Default volume should use default disk -->
+                    </default>
                 </volumes>
             </s3_policy>
         </policies>
@@ -43,7 +45,7 @@
 
     <profiles>
         <default>
-            <default_storage_policy>s3_policy</default_storage_policy>
+            <default_storage_policy>s3_policy</default_storage_policy> <!-- Make S3 the default storage policy -->
         </default>
     </profiles>
 </clickhouse>
