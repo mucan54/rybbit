@@ -66,5 +66,9 @@ services:
 
 volumes:
   clickhouse-data:
+    driver_opts:
+      type: "tmpfs"
+      device: "tmpfs"
+      o: "size=10G"
   postgres-data:
   redis-data:
