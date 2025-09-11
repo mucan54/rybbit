@@ -1,6 +1,12 @@
 <clickhouse>
     <storage_configuration>
         <disks>
+            <!-- Define the default disk explicitly for compatibility with old tables. -->
+            <default>
+                <type>local</type>
+                <path>/var/lib/clickhouse/data/</path>
+            </default>
+
             <!-- A local disk for hot data, limited to 1GB. -->
             <local_data_disk>
                 <type>local</type>
@@ -24,6 +30,10 @@
             <!-- This policy defines a tiered storage setup. -->
             <tiered_s3_policy>
                 <volumes>
+                    <!-- Use the explicit 'default' disk for the migration volume. -->
+                    <default>
+                        <disk>default</disk>
+                    </default>
                     <!-- Hot data stays on the local disk. -->
                     <hot>
                         <disk>local_data_disk</disk>
