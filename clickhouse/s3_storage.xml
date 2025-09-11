@@ -1,26 +1,25 @@
 <clickhouse>
     <storage_configuration>
         <disks>
-            <!-- Define the default disk explicitly -->
             <default>
                 <type>local</type>
                 <path>/var/lib/clickhouse/</path>
             </default>
 
-            <!-- S3 disk for cold data -->
             <s3_disk>
                 <type>s3</type>
-                <endpoint>https://nbg1.your-objectstorage.com/rybbit/clickhouse/</endpoint>
+                <endpoint>https://nbg1.your-objectstorage.com</endpoint>
                 <access_key_id from_env="S3_ACCESS_KEY"/>
                 <secret_access_key from_env="S3_SECRET_KEY"/>
                 <region from_env="S3_REGION"/>
+                <bucket>rybbit</bucket>
+                <root_path>clickhouse/</root_path>
                 <use_virtual_addressing>false</use_virtual_addressing>
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk_metadata/</metadata_path>
             </s3_disk>
         </disks>
 
         <policies>
-            <!-- Default policy for backward compatibility -->
             <default>
                 <volumes>
                     <main>
@@ -29,7 +28,6 @@
                 </volumes>
             </default>
 
-            <!-- Tiered storage policy -->
             <tiered_s3_policy>
                 <volumes>
                     <hot>
