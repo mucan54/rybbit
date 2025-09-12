@@ -39,6 +39,13 @@
                     </cold>
                 </volumes>
             </tiered_s3_policy>
+            <s3_policy>
+                <volumes>
+                    <default>
+                        <disk>s3_disk</disk>
+                    </default>
+                </volumes>
+            </s3_policy>
         </policies>
     </storage_configuration>
 
