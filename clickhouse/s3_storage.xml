@@ -1,4 +1,5 @@
 <clickhouse>
+    <listen_host>0.0.0.0</listen_host>
     <storage_configuration>
         <disks>
             <!-- A local disk for hot data -->
