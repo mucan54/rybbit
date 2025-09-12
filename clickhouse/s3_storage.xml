@@ -17,6 +17,9 @@
                 <region from_env="S3_REGION"/>
                 <use_virtual_addressing>false</use_virtual_addressing>
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk_metadata/</metadata_path>
+                <max_concurrent_upload_operations>8</max_concurrent_upload_operations>
+                <max_download_threads>8</max_download_threads>
+                <skip_access_check>true</skip_access_check>
             </s3_disk>
         </disks>
 
@@ -32,7 +35,7 @@
                     <hot>
                         <disk>local_data_disk</disk>
                         <max_data_part_size_bytes>1073741824</max_data_part_size_bytes>
-                        <move_factor>0.1</move_factor>
+                        <move_factor>95</move_factor>
                     </hot>
                     <!-- Cold volume for S3 storage -->
                     <cold>
