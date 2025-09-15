@@ -32,7 +32,7 @@
                     <hot>
                         <disk>local_data_disk</disk>
                         <max_data_part_size_bytes>1073741824</max_data_part_size_bytes>
-                        <move_factor>0.1</move_factor>
+                        <move_factor>0.4</move_factor>
                     </hot>
                     <!-- Cold volume for S3 storage -->
                     <cold>
